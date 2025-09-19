@@ -1,239 +1,262 @@
 <!doctype html>
 <html lang="it">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="manifest.json">
-<title>Animaboard</title>
-<link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512x512.png">
-<style>
-body { 
-  background:#000; 
-  color:#0f0; 
-  font-family:monospace; 
-  text-align:center; 
-  padding:10px; 
-  font-size:14px;
-}
-#status { margin:5px; font-size:14px; }
-textarea { 
-  width:95%; 
-  height:120px; 
-  background:#111; 
-  color:#0f0; 
-  border:1px solid #0f0; 
-  padding:6px; 
-  font-size:14px; 
-}
-.keys { 
-  display:flex; 
-  flex-wrap:wrap; 
-  justify-content:center; 
-  margin-top:5px; 
-  gap:4px; 
-}
-.keys button { 
-  background:#111; 
-  color:#0f0; 
-  border:1px solid #0f0; 
-  padding:8px 10px; 
-  border-radius:4px; 
-  font-size:12px; 
-  cursor:pointer; 
-  outline:none; 
-  user-select:none; 
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.2s, color 0.2s;
-}
-.keys button.active { background: #00CED1; color: #000; } /* celeste */
-.keys button:disabled { color:#333; border-color:#333; cursor:default; }
-button { 
-  margin:3px; 
-  padding:4px 6px; 
-  border-radius:4px; 
-  cursor:pointer; 
-  background:#111; 
-  color:#0f0; 
-  border:1px solid #0f0; 
-  font-size:12px;
-}
-#delayContainer, #speedContainer { margin-top:5px; color:#0f0; font-size:12px; }
-input[type=range] { width:90%; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <title>Animaboard</title>
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512x512.png">
+  <style>
+    body { 
+      background:#000; 
+      color:#0f0; 
+      font-family:monospace; 
+      text-align:center; 
+      padding:10px; 
+      font-size:14px;
+    }
+    #status { margin:5px; font-size:14px; }
+    textarea { 
+      width:95%; 
+      height:120px; 
+      background:#111; 
+      color:#0f0; 
+      border:1px solid #0f0; 
+      padding:6px; 
+      font-size:14px; 
+    }
+    .keys { 
+      display:flex; 
+      flex-wrap:wrap; 
+      justify-content:center; 
+      margin-top:5px; 
+      gap:4px; 
+    }
+    .keys button { 
+      background:#111; 
+      color:#0f0; 
+      border:1px solid #0f0; 
+      padding:8px 10px; 
+      border-radius:4px; 
+      font-size:12px; 
+      cursor:pointer; 
+      outline:none; 
+      user-select:none; 
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s, color 0.2s;
+    }
+    .keys button.active { background: #00CED1; color: #000; } /* celeste */
+    .keys button:disabled { color:#333; border-color:#333; cursor:default; }
+    button { 
+      margin:3px; 
+      padding:4px 6px; 
+      border-radius:4px; 
+      cursor:pointer; 
+      background:#111; 
+      color:#0f0; 
+      border:1px solid #0f0; 
+      font-size:12px;
+    }
+    #delayContainer, #speedContainer { margin-top:5px; color:#0f0; font-size:12px; }
+    input[type=range] { width:90%; }
+  </style>
 </head>
 <body>
 
-<h2 style="font-size:16px;">Animaboard</h2>
-<div id="status">In attesa di variazione campo...</div>
-<textarea id="box" placeholder="In Attesa Di Un Messaggio...."></textarea>
-<div class="keys" id="keys"></div>
+  <h2 style="font-size:16px;">Animaboard</h2>
+  <div id="status">In attesa di variazione campo...</div>
+  <textarea id="box" placeholder="In Attesa Di Un Messaggio...."></textarea>
+  <div class="keys" id="keys"></div>
 
-<button id="wakeBtn">Schermo: OFF</button>
-<button id="scanBtn">Attiva scansione tasti</button>
+  <button id="wakeBtn">Schermo: OFF</button>
+  <button id="scanBtn">Attiva scansione tasti</button>
 
-<div id="delayContainer">
-  <label for="letterDelay">Delay lettera (ms): </label>
-  <input type="range" id="letterDelay" min="100" max="6000" step="50" value="500">
-  <span id="letterDelayValue">500</span> ms
-</div>
+  <div id="delayContainer">
+    <label for="letterDelay">Delay lettera (ms): </label>
+    <input type="range" id="letterDelay" min="100" max="6000" step="50" value="500">
+    <span id="letterDelayValue">500</span> ms
+  </div>
 
-<div id="speedContainer">
-  <label for="scanSpeed">Velocità scansione (ms): </label>
-  <input type="range" id="scanSpeed" min="100" max="6000" step="50" value="500">
-  <span id="scanSpeedValue">500</span> ms
-</div>
+  <div id="speedContainer">
+    <label for="scanSpeed">Velocità scansione (ms): </label>
+    <input type="range" id="scanSpeed" min="100" max="6000" step="50" value="500">
+    <span id="scanSpeedValue">500</span> ms
+  </div>
 
-<script>
-const box = document.getElementById("box");
-const keysContainer = document.getElementById("keys");
-const wakeBtn = document.getElementById("wakeBtn");
-const scanBtn = document.getElementById("scanBtn");
-const letterDelaySlider = document.getElementById("letterDelay");
-const letterDelayValue = document.getElementById("letterDelayValue");
-const scanSpeedSlider = document.getElementById("scanSpeed");
-const scanSpeedValue = document.getElementById("scanSpeedValue");
+  <script>
+    const box = document.getElementById("box");
+    const keysContainer = document.getElementById("keys");
+    const wakeBtn = document.getElementById("wakeBtn");
+    const scanBtn = document.getElementById("scanBtn");
+    const letterDelaySlider = document.getElementById("letterDelay");
+    const letterDelayValue = document.getElementById("letterDelayValue");
+    const scanSpeedSlider = document.getElementById("scanSpeed");
+    const scanSpeedValue = document.getElementById("scanSpeedValue");
 
-let letterDelay = parseInt(letterDelaySlider.value);
-let scanSpeed = parseInt(scanSpeedSlider.value);
-let scanActive = false;
-let scanIndex = 0;
-let scanTimer = null;
+    let letterDelay = parseInt(letterDelaySlider.value);
+    let scanSpeed = parseInt(scanSpeedSlider.value);
+    let scanActive = false;
+    let scanIndex = 0;
+    let scanTimer = null;
 
-letterDelaySlider.addEventListener("input", ()=>{
-  letterDelay = parseInt(letterDelaySlider.value);
-  letterDelayValue.textContent = letterDelay;
-});
+    letterDelaySlider.addEventListener("input", ()=>{
+      letterDelay = parseInt(letterDelaySlider.value);
+      letterDelayValue.textContent = letterDelay;
+    });
 
-scanSpeedSlider.addEventListener("input", ()=>{
-  scanSpeed = parseInt(scanSpeedSlider.value);
-  scanSpeedValue.textContent = scanSpeed;
-  if(scanActive){ startScan(); }
-});
+    scanSpeedSlider.addEventListener("input", ()=>{
+      scanSpeed = parseInt(scanSpeedSlider.value);
+      scanSpeedValue.textContent = scanSpeed;
+      if(scanActive){ startScan(); }
+    });
 
-// Genera tastiera
-const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-letters.push("Spazio","Cancella");
-const keyButtons = [];
-letters.forEach(l=>{
-  const btn = document.createElement("button");
-  btn.textContent = l;
-  btn.dataset.letter = l;
-  keysContainer.appendChild(btn);
-  keyButtons.push(btn);
-});
+    // Genera tastiera
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    letters.push("Spazio","Cancella");
+    const keyButtons = [];
+    letters.forEach(l=>{
+      const btn = document.createElement("button");
+      btn.textContent = l;
+      btn.dataset.letter = l;
+      keysContainer.appendChild(btn);
+      keyButtons.push(btn);
+    });
 
-// Scrittura lettera
-function writeLetter(l){
-  if(l==="Spazio") box.value += " ";
-  else if(l==="Cancella") box.value = box.value.slice(0,-1);
-  else box.value += l;
-}
+    // Scrittura lettera
+    function writeLetter(l){
+      if(l==="Spazio") box.value += " ";
+      else if(l==="Cancella") box.value = box.value.slice(0,-1);
+      else box.value += l;
+    }
 
-// Gestione press prolungato su Cancella
-let deleteTimer = null;
-keyButtons.forEach(btn=>{
-  if(btn.dataset.letter === "Cancella"){
-    btn.addEventListener("mousedown", startDeleteHold);
-    btn.addEventListener("touchstart", startDeleteHold);
-    btn.addEventListener("mouseup", stopDeleteHold);
-    btn.addEventListener("mouseleave", stopDeleteHold);
-    btn.addEventListener("touchend", stopDeleteHold);
-  }
-});
+    // Gestione press prolungato su Cancella
+    let deleteTimer = null;
+    keyButtons.forEach(btn=>{
+      if(btn.dataset.letter === "Cancella"){
+        btn.addEventListener("mousedown", startDeleteHold);
+        btn.addEventListener("touchstart", startDeleteHold);
+        btn.addEventListener("mouseup", stopDeleteHold);
+        btn.addEventListener("mouseleave", stopDeleteHold);
+        btn.addEventListener("touchend", stopDeleteHold);
+      }
+    });
 
-function startDeleteHold(e){
-  e.preventDefault();
-  deleteTimer = setTimeout(()=>{
-    box.value = ""; // cancella tutto il testo
-  }, 600); // 600 ms
-}
+    function startDeleteHold(e){
+      e.preventDefault();
+      deleteTimer = setTimeout(()=>{
+        box.value = ""; // cancella tutto il testo
+      }, 600); // 600 ms
+    }
 
-function stopDeleteHold(){
-  clearTimeout(deleteTimer);
-}
+    function stopDeleteHold(){
+      clearTimeout(deleteTimer);
+    }
 
-// Aggiorna evidenza tasto scansione
-function updateScanHighlight(){
-  keyButtons.forEach((btn,i)=>{ btn.classList.toggle('active', i===scanIndex); });
-}
+    // Aggiorna evidenza tasto scansione
+    function updateScanHighlight(){
+      keyButtons.forEach((btn,i)=>{ btn.classList.toggle('active', i===scanIndex); });
+    }
 
-// Avvia scansione (salta Cancella)
-function startScan(){
-  if(scanTimer) clearInterval(scanTimer);
-  scanTimer = setInterval(()=>{
-    do {
-      scanIndex = (scanIndex+1) % letters.length;
-    } while(letters[scanIndex] === "Cancella");
-    updateScanHighlight();
-  }, scanSpeed);
-}
+    // Avvia scansione (salta Cancella)
+    function startScan(){
+      if(scanTimer) clearInterval(scanTimer);
+      scanTimer = setInterval(()=>{
+        do {
+          scanIndex = (scanIndex+1) % letters.length;
+        } while(letters[scanIndex] === "Cancella");
+        updateScanHighlight();
+      }, scanSpeed);
+    }
 
-// Touch ipersensibile
-let lastTouchedBtn = null;
-function handleTouch(e){
-  e.preventDefault();
-  for(let i=0;i<e.touches.length;i++){
-    const touch = e.touches[i];
-    const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    if(scanActive){
-      writeLetter(letters[scanIndex]);
-    } else {
-      if(el && el.tagName==="BUTTON" && el.dataset.letter){
-        if(el !== lastTouchedBtn){ writeLetter(el.dataset.letter); lastTouchedBtn = el; }
+    // Touch ipersensibile
+    let lastTouchedBtn = null;
+    function handleTouch(e){
+      e.preventDefault();
+      for(let i=0;i<e.touches.length;i++){
+        const touch = e.touches[i];
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        if(scanActive){
+          writeLetter(letters[scanIndex]);
+        } else {
+          if(el && el.tagName==="BUTTON" && el.dataset.letter){
+            if(el !== lastTouchedBtn){ writeLetter(el.dataset.letter); lastTouchedBtn = el; }
+          }
+        }
       }
     }
-  }
-}
-document.addEventListener("touchstart", handleTouch);
-document.addEventListener("touchmove", handleTouch);
-document.addEventListener("touchend", ()=>{ lastTouchedBtn=null; });
+    document.addEventListener("touchstart", handleTouch);
+    document.addEventListener("touchmove", handleTouch);
+    document.addEventListener("touchend", ()=>{ lastTouchedBtn=null; });
 
-// Magnetometro
-let lastMag = null;
-let sensitivity = 0.1;
-if(window.DeviceOrientationEvent){
-  window.addEventListener("deviceorientation", e=>{
-    if(e.absolute && e.alpha!==null){
-      const mag = e.alpha;
-      const activeMag = lastMag!==null && Math.abs(mag-lastMag)>sensitivity;
-      lastMag = mag;
-      if(scanActive && activeMag){ writeLetter(letters[scanIndex]); }
+    // Magnetometro
+    let lastMag = null;
+    let sensitivity = 0.1;
+    if(window.DeviceOrientationEvent){
+      window.addEventListener("deviceorientation", e=>{
+        if(e.absolute && e.alpha!==null){
+          const mag = e.alpha;
+          const activeMag = lastMag!==null && Math.abs(mag-lastMag)>sensitivity;
+          lastMag = mag;
+          if(scanActive && activeMag){ writeLetter(letters[scanIndex]); }
+        }
+      });
     }
-  });
-}
 
-// Wake Lock
-let wakeLock=null, wakeActive=false;
-async function toggleWakeLock(){
-  if('wakeLock' in navigator){
-    if(!wakeActive){
-      try{ wakeLock=await navigator.wakeLock.request('screen'); wakeActive=true; wakeBtn.textContent="Schermo: ON"; }
-      catch(err){ console.error(err); }
-    } else { if(wakeLock) wakeLock.release(); wakeActive=false; wakeBtn.textContent="Schermo: OFF"; }
-  }
-}
-wakeBtn.addEventListener("click", toggleWakeLock);
+    // Wake Lock
+    let wakeLock=null, wakeActive=false;
+    async function toggleWakeLock(){
+      if('wakeLock' in navigator){
+        if(!wakeActive){
+          try{ 
+            wakeLock = await navigator.wakeLock.request('screen'); 
+            wakeActive = true; 
+            wakeBtn.textContent = "Schermo: ON"; 
+          } catch(err){ 
+            console.error("Errore Wake Lock:", err); 
+          }
+        } else { 
+          if(wakeLock) wakeLock.release(); 
+          wakeActive = false; 
+          wakeBtn.textContent = "Schermo: OFF"; 
+        }
+      }
+    }
+    wakeBtn.addEventListener("click", toggleWakeLock);
 
-// Scansione tasti
-scanBtn.addEventListener("click", ()=>{
-  scanActive = !scanActive;
-  scanBtn.textContent = scanActive ? "Disattiva scansione" : "Attiva scansione tasti";
-  if(scanActive){
-    updateScanHighlight();
-    startScan();
-  } else {
-    clearInterval(scanTimer);
-    scanTimer=null;
-    keyButtons.forEach(btn=>btn.classList.remove('active'));
-  }
-});
-</script>
+    // Scansione tasti
+    scanBtn.addEventListener("click", ()=>{
+      scanActive = !scanActive;
+      scanBtn.textContent = scanActive ? "Disattiva scansione" : "Attiva scansione tasti";
+      if(scanActive){
+        updateScanHighlight();
+        startScan();
+      } else {
+        clearInterval(scanTimer);
+        scanTimer = null;
+        keyButtons.forEach(btn => btn.classList.remove('active'));
+      }
+    });
+  </script>
+
+  <!-- ✅ REGISTRAZIONE SERVICE WORKER (FONDAMENTALE PER LA PWA) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => {
+            console.log('✅ Animaboard: Service Worker registrato con successo:', reg.scope);
+          })
+          .catch(err => {
+            console.error('❌ Animaboard: Registrazione Service Worker fallita:', err);
+          });
+      });
+    }
+  </script>
 
 </body>
 </html>
-
