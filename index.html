@@ -69,7 +69,7 @@ input[type=range] { width:90%; }
 
 <h2 style="font-size:16px;">Animaboard</h2>
 <div id="status">In attesa di variazione campo...</div>
-<textarea id="box" placeholder="Il testo apparirà qui..."></textarea>
+<textarea id="box" placeholder="In Attesa Di Un Messaggio...."></textarea>
 <div class="keys" id="keys"></div>
 
 <button id="wakeBtn">Schermo: OFF</button>
@@ -133,23 +133,46 @@ function writeLetter(l){
   else box.value += l;
 }
 
+// Gestione press prolungato su Cancella
+let deleteTimer = null;
+keyButtons.forEach(btn=>{
+  if(btn.dataset.letter === "Cancella"){
+    btn.addEventListener("mousedown", startDeleteHold);
+    btn.addEventListener("touchstart", startDeleteHold);
+    btn.addEventListener("mouseup", stopDeleteHold);
+    btn.addEventListener("mouseleave", stopDeleteHold);
+    btn.addEventListener("touchend", stopDeleteHold);
+  }
+});
+
+function startDeleteHold(e){
+  e.preventDefault();
+  deleteTimer = setTimeout(()=>{
+    box.value = ""; // cancella tutto il testo
+  }, 600); // 600 ms
+}
+
+function stopDeleteHold(){
+  clearTimeout(deleteTimer);
+}
+
 // Aggiorna evidenza tasto scansione
 function updateScanHighlight(){
   keyButtons.forEach((btn,i)=>{ btn.classList.toggle('active', i===scanIndex); });
 }
 
-// Funzione per avviare o aggiornare la scansione escludendo "Cancella"
+// Avvia scansione (salta Cancella)
 function startScan(){
   if(scanTimer) clearInterval(scanTimer);
   scanTimer = setInterval(()=>{
     do {
       scanIndex = (scanIndex+1) % letters.length;
-    } while(letters[scanIndex] === "Cancella"); // salta "Cancella"
+    } while(letters[scanIndex] === "Cancella");
     updateScanHighlight();
   }, scanSpeed);
 }
 
-// Touch ultra-sensibile
+// Touch ipersensibile
 let lastTouchedBtn = null;
 function handleTouch(e){
   e.preventDefault();
