@@ -337,7 +337,7 @@
       clearTimeout(deleteTimer);
     }
 
-    // Aggiorna evidenza tasto scansione
+    // ✅ CORREZIONE: Aggiorna evidenza tasto scansione (NON salta più la A)
     function updateScanHighlight(){
       keyButtons.forEach(btn => btn.classList.remove('active'));
       
@@ -348,27 +348,58 @@
         filteredButtons = keyButtons.filter(btn => numbers.includes(btn.dataset.letter));
       }
       
+      // Trova l'indice corrente nel set filtrato
       let currentIndex = filteredButtons.indexOf(keyButtons[scanIndex]);
-      if (currentIndex === -1) currentIndex = 0;
+      if (currentIndex === -1 || filteredButtons.length === 0) {
+        currentIndex = 0;
+        if (filteredButtons.length > 0) {
+          scanIndex = keyButtons.indexOf(filteredButtons[currentIndex]);
+        }
+      }
 
+      // ✅ EVIDENZIA SUBITO IL TASTO CORRENTE
+      if (keyButtons[scanIndex]) {
+        keyButtons[scanIndex].classList.add('active');
+      }
+
+      // Cerca il prossimo tasto valido (non "Cancella")
       let nextIndex = currentIndex;
       do {
         nextIndex = (nextIndex + 1) % filteredButtons.length;
         const nextButton = filteredButtons[nextIndex];
-        if (nextButton.dataset.letter !== "Cancella") {
+        if (nextButton && nextButton.dataset.letter !== "Cancella") {
           scanIndex = keyButtons.indexOf(nextButton);
-          keyButtons[scanIndex].classList.add('active');
           break;
         }
       } while (nextIndex !== currentIndex);
     }
 
-    // Avvia scansione
+    // ✅ CORREZIONE: Avvia scansione partendo dal primo tasto valido
     function startScan(){
       if(scanTimer) clearInterval(scanTimer);
-      scanTimer = setInterval(()=>{
-        updateScanHighlight();
-      }, scanSpeed);
+
+      let filteredButtons = keyButtons;
+      if (scanMode === 'letters') {
+        filteredButtons = keyButtons.filter(btn => letters.includes(btn.dataset.letter));
+      } else if (scanMode === 'numbers') {
+        filteredButtons = keyButtons.filter(btn => numbers.includes(btn.dataset.letter));
+      }
+      
+      // Trova il primo tasto valido (non "Cancella")
+      const firstValidButton = filteredButtons.find(btn => btn.dataset.letter !== "Cancella");
+      if (firstValidButton) {
+        scanIndex = keyButtons.indexOf(firstValidButton);
+      } else if (filteredButtons.length > 0) {
+        // Se non ci sono tasti validi, prendi il primo disponibile
+        scanIndex = keyButtons.indexOf(filteredButtons[0]);
+      } else {
+        scanIndex = 0;
+      }
+
+      // ✅ Evidenzia subito il primo tasto prima di avviare l'intervallo
+      updateScanHighlight();
+
+      scanTimer = setInterval(updateScanHighlight, scanSpeed);
     }
 
     // ==================================================
@@ -606,8 +637,7 @@
       scanBtn.textContent = scanActive ? "⏹ Ferma Scansione" : "▶️ Avvia Scansione";
       if(scanActive){
         scanIndex = 0;
-        updateScanHighlight();
-        startScan();
+        startScan(); // ✅ Ora startScan() gestisce correttamente l'inizializzazione
       } else {
         clearInterval(scanTimer);
         scanTimer = null;
