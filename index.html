@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
@@ -17,31 +17,63 @@
       color:#0f0; 
       font-family:monospace; 
       text-align:center; 
-      padding:10px; 
+      padding:8px; 
       font-size:14px;
+      margin: 0;
     }
-    #status { margin:5px; font-size:14px; }
+    #header { 
+      display: flex; 
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px; 
+      padding: 0 10px;
+    }
+    #title-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #title {
+      font-size: 18px;
+      margin: 0;
+      color: #00CED1;
+    }
+    #creator {
+      font-size: 10px;
+      color: #00CED1;
+      margin: 2px 0 0 0;
+    }
+    #boxBtn { 
+      background:#00CED1; 
+      color:#000; 
+      border:1px solid #000; 
+      padding:6px 10px; 
+      border-radius:4px; 
+      font-size:12px; 
+      cursor:pointer; 
+    }
     textarea { 
-      width:95%; 
-      height:120px; 
+      width:100%; 
+      height:100px; 
       background:#111; 
       color:#0f0; 
       border:1px solid #0f0; 
       padding:6px; 
       font-size:14px; 
+      box-sizing: border-box;
+      margin-bottom: 8px;
     }
     .keys { 
-      display:flex; 
-      flex-wrap:wrap; 
-      justify-content:center; 
-      margin-top:5px; 
-      gap:4px; 
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+      margin-bottom: 8px;
     }
     .keys button { 
       background:#111; 
       color:#0f0; 
       border:1px solid #0f0; 
-      padding:8px 10px; 
+      padding:8px 4px; 
       border-radius:4px; 
       font-size:12px; 
       cursor:pointer; 
@@ -49,11 +81,18 @@
       user-select:none; 
       -webkit-tap-highlight-color: transparent;
       transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      touch-action: none; /* ✅ IMPORTANTE per touchmove fluido */
     }
-    .keys button.active { background: #00CED1; color: #000; } /* celeste */
+    .keys button.active { 
+      background: #00CED1;
+      color: #000; 
+    }
     .keys button:disabled { color:#333; border-color:#333; cursor:default; }
     button { 
-      margin:3px; 
+      margin:3px 2px;
       padding:4px 6px; 
       border-radius:4px; 
       cursor:pointer; 
@@ -61,31 +100,145 @@
       color:#0f0; 
       border:1px solid #0f0; 
       font-size:12px;
+      white-space: nowrap;
+      touch-action: manipulation;
     }
-    #delayContainer, #speedContainer { margin-top:5px; color:#0f0; font-size:12px; }
-    input[type=range] { width:90%; }
+    .control-row { 
+      display: flex; 
+      flex-wrap: wrap; 
+      justify-content: center; 
+      gap: 6px; 
+      margin-bottom: 8px; 
+    }
+    .scan-mode { 
+      display: flex; 
+      gap: 4px; 
+      justify-content: center; 
+      margin-bottom: 8px; 
+    }
+    .scan-mode button {
+      background:#111; 
+      color:#0f0; 
+      border:1px solid #0f0; 
+      padding:6px 10px; 
+      border-radius:4px; 
+      font-size:12px; 
+      cursor:pointer;
+      touch-action: manipulation;
+    }
+    .scan-mode button.active { 
+      background: #00CED1;
+      color: #000; 
+      border:1px solid #00CED1; 
+    }
+    #delayContainer, #speedContainer { 
+      margin-top:5px; 
+      color:#0f0; 
+      font-size:12px; 
+      display: flex; 
+      align-items: center; 
+      gap: 6px; 
+    }
+    input[type=range] { 
+      width:100%; 
+      margin: 0; 
+      touch-action: manipulation;
+    }
+    #savedMessages { 
+      display: none; 
+      position: fixed; 
+      top: 0; left: 0; right: 0; bottom: 0; 
+      background: #111; 
+      padding: 20px; 
+      overflow-y: auto; 
+      z-index: 1000; 
+    }
+    #savedMessages h3 { color: #00CED1; text-align: center; }
+    .message-item { 
+      background: #222; 
+      padding: 10px; 
+      margin: 10px 0; 
+      border-left: 3px solid #00CED1; 
+      text-align: left;
+    }
+    .close-btn { 
+      position: fixed; 
+      top: 10px; 
+      right: 10px; 
+      background: #f00; 
+      color: white; 
+      border: none; 
+      padding: 5px 10px; 
+      border-radius: 4px; 
+      cursor: pointer; 
+      touch-action: manipulation;
+    }
+    .box-actions {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      justify-content: center;
+    }
+    .box-actions button {
+      padding: 8px 16px;
+      font-size: 14px;
+      touch-action: manipulation;
+    }
+    #saveBtn { background: #00CED1; color: #000; }
+    #clearBtn { background: #f00; color: white; }
+
+    /* Fallback video */
+    video[style*="opacity: 0.01"] {
+      display: block !important;
+      visibility: visible !important;
+    }
   </style>
 </head>
 <body>
 
-  <h2 style="font-size:16px;">Animaboard</h2>
-  <p style="font-size:10px; color:#00CED1; margin: 5px 0;">Created By Domenico Pizzurro</p>
+  <div id="header">
+    <div id="title-container">
+      <h1 id="title">Animaboard</h1>
+      <p id="creator">Created By Domenico Pizzurro</p>
+    </div>
+    <button id="boxBtn">📁 Box</button>
+  </div>
+
   <textarea id="box" placeholder="In Attesa Di Un Messaggio...."></textarea>
+
+  <div class="scan-mode">
+    <button id="scanModeAll" class="active">Tutto</button>
+    <button id="scanModeLetters">Solo Lettere</button>
+    <button id="scanModeNumbers">Solo Numeri</button>
+  </div>
+
   <div class="keys" id="keys"></div>
 
-  <button id="wakeBtn">Schermo: OFF</button>
-  <button id="scanBtn">Attiva scansione tasti</button>
+  <div class="control-row">
+    <button id="wakeBtn">Schermo: OFF</button>
+    <button id="scanBtn">▶️ Avvia Scansione</button>
+  </div>
 
   <div id="delayContainer">
-    <label for="letterDelay">Delay lettera (ms): </label>
+    <label for="letterDelay">Delay:</label>
     <input type="range" id="letterDelay" min="100" max="6000" step="50" value="500">
-    <span id="letterDelayValue">500</span> ms
+    <span id="letterDelayValue">500</span>ms
   </div>
 
   <div id="speedContainer">
-    <label for="scanSpeed">Velocità scansione (ms): </label>
+    <label for="scanSpeed">Velocità:</label>
     <input type="range" id="scanSpeed" min="100" max="6000" step="50" value="500">
-    <span id="scanSpeedValue">500</span> ms
+    <span id="scanSpeedValue">500</span>ms
+  </div>
+
+  <div id="savedMessages">
+    <h3>📁 Messaggi Salvati</h3>
+    <div class="box-actions">
+      <button id="saveBtn">💾 Salva su File</button>
+      <button id="clearBtn">🗑️ Cancella Tutto</button>
+    </div>
+    <div id="messagesList"></div>
+    <button class="close-btn">Chiudi</button>
   </div>
 
   <script>
@@ -97,12 +250,34 @@
     const letterDelayValue = document.getElementById("letterDelayValue");
     const scanSpeedSlider = document.getElementById("scanSpeed");
     const scanSpeedValue = document.getElementById("scanSpeedValue");
+    const boxBtn = document.getElementById("boxBtn");
+    const savedMessages = document.getElementById("savedMessages");
+    const messagesList = document.getElementById("messagesList");
+    const scanModeAll = document.getElementById("scanModeAll");
+    const scanModeLetters = document.getElementById("scanModeLetters");
+    const scanModeNumbers = document.getElementById("scanModeNumbers");
+    const saveBtn = document.getElementById("saveBtn");
+    const clearBtn = document.getElementById("clearBtn");
 
     let letterDelay = parseInt(letterDelaySlider.value);
     let scanSpeed = parseInt(scanSpeedSlider.value);
     let scanActive = false;
     let scanIndex = 0;
     let scanTimer = null;
+    let scanMode = 'all'; // 'all', 'letters', 'numbers'
+
+    // Modalità di scansione
+    function setScanMode(mode) {
+      scanMode = mode;
+      [scanModeAll, scanModeLetters, scanModeNumbers].forEach(btn => btn.classList.remove('active'));
+      if (mode === 'all') scanModeAll.classList.add('active');
+      if (mode === 'letters') scanModeLetters.classList.add('active');
+      if (mode === 'numbers') scanModeNumbers.classList.add('active');
+    }
+
+    scanModeAll.addEventListener('click', () => setScanMode('all'));
+    scanModeLetters.addEventListener('click', () => setScanMode('letters'));
+    scanModeNumbers.addEventListener('click', () => setScanMode('numbers'));
 
     letterDelaySlider.addEventListener("input", ()=>{
       letterDelay = parseInt(letterDelaySlider.value);
@@ -115,11 +290,14 @@
       if(scanActive){ startScan(); }
     });
 
-    // Genera tastiera
+    // Genera tastiera completa (lettere + numeri)
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-    letters.push("Spazio","Cancella");
+    const numbers = "0123456789".split("");
+    const special = ["Spazio", "Cancella"];
+    const allKeys = [...letters, ...numbers, ...special];
     const keyButtons = [];
-    letters.forEach(l=>{
+
+    allKeys.forEach(l=>{
       const btn = document.createElement("button");
       btn.textContent = l;
       btn.dataset.letter = l;
@@ -132,6 +310,7 @@
       if(l==="Spazio") box.value += " ";
       else if(l==="Cancella") box.value = box.value.slice(0,-1);
       else box.value += l;
+      box.scrollTop = box.scrollHeight; // auto-scroll
     }
 
     // Gestione press prolungato su Cancella
@@ -143,14 +322,15 @@
         btn.addEventListener("mouseup", stopDeleteHold);
         btn.addEventListener("mouseleave", stopDeleteHold);
         btn.addEventListener("touchend", stopDeleteHold);
+        btn.addEventListener("touchcancel", stopDeleteHold);
       }
     });
 
     function startDeleteHold(e){
       e.preventDefault();
       deleteTimer = setTimeout(()=>{
-        box.value = ""; // cancella tutto il testo
-      }, 600); // 600 ms
+        box.value = "";
+      }, 600);
     }
 
     function stopDeleteHold(){
@@ -159,80 +339,273 @@
 
     // Aggiorna evidenza tasto scansione
     function updateScanHighlight(){
-      keyButtons.forEach((btn,i)=>{ btn.classList.toggle('active', i===scanIndex); });
+      keyButtons.forEach(btn => btn.classList.remove('active'));
+      
+      let filteredButtons = keyButtons;
+      if (scanMode === 'letters') {
+        filteredButtons = keyButtons.filter(btn => letters.includes(btn.dataset.letter));
+      } else if (scanMode === 'numbers') {
+        filteredButtons = keyButtons.filter(btn => numbers.includes(btn.dataset.letter));
+      }
+      
+      let currentIndex = filteredButtons.indexOf(keyButtons[scanIndex]);
+      if (currentIndex === -1) currentIndex = 0;
+
+      let nextIndex = currentIndex;
+      do {
+        nextIndex = (nextIndex + 1) % filteredButtons.length;
+        const nextButton = filteredButtons[nextIndex];
+        if (nextButton.dataset.letter !== "Cancella") {
+          scanIndex = keyButtons.indexOf(nextButton);
+          keyButtons[scanIndex].classList.add('active');
+          break;
+        }
+      } while (nextIndex !== currentIndex);
     }
 
-    // Avvia scansione (salta Cancella)
+    // Avvia scansione
     function startScan(){
       if(scanTimer) clearInterval(scanTimer);
       scanTimer = setInterval(()=>{
-        do {
-          scanIndex = (scanIndex+1) % letters.length;
-        } while(letters[scanIndex] === "Cancella");
         updateScanHighlight();
       }, scanSpeed);
     }
 
-    // Touch ipersensibile
-    let lastTouchedBtn = null;
-    function handleTouch(e){
-      e.preventDefault();
-      for(let i=0;i<e.touches.length;i++){
+    // ==================================================
+    // TOUCH IPERSENSIBILE + TOUCH ANYWHERE IN SCANSIONE
+    // ==================================================
+    let lastTouchedKey = null;
+
+    function handleTouchStart(e) {
+      handleTouchLogic(e, true);
+    }
+
+    function handleTouchMove(e) {
+      if (!scanActive) {
+        handleTouchLogic(e, false);
+      } else {
+        // Durante la scansione, tocco anywhere = scrivi lettera attiva
+        e.preventDefault();
+        writeLetter(keyButtons[scanIndex].dataset.letter);
+      }
+    }
+
+    function handleTouchEnd() {
+      lastTouchedKey = null;
+    }
+
+    function handleTouchLogic(e, isStart) {
+      // Escludi elementi sensibili
+      const excludedSelectors = [
+        'input[type="range"]',
+        '#wakeBtn',
+        '#scanBtn',
+        '#boxBtn',
+        '.scan-mode button',
+        '.close-btn',
+        '#saveBtn',
+        '#clearBtn'
+      ];
+
+      for (let selector of excludedSelectors) {
+        if (e.target.closest(selector)) {
+          return; // lascia che funzionino normalmente
+        }
+      }
+
+      e.preventDefault(); // previeni scroll/zoom
+
+      for (let i = 0; i < e.touches.length; i++) {
         const touch = e.touches[i];
         const el = document.elementFromPoint(touch.clientX, touch.clientY);
-        if(scanActive){
-          writeLetter(letters[scanIndex]);
+        const btn = el?.closest('button[data-letter]');
+
+        if (!btn) continue;
+
+        if (scanActive) {
+          // Se scansione attiva, scrivi SOLO se è il tasto attivo
+          if (btn.classList.contains('active')) {
+            writeLetter(btn.dataset.letter);
+          }
         } else {
-          if(el && el.tagName==="BUTTON" && el.dataset.letter){
-            if(el !== lastTouchedBtn){ writeLetter(el.dataset.letter); lastTouchedBtn = el; }
+          // Modalità normale: scrivi al passaggio del dito
+          if (btn !== lastTouchedKey) {
+            writeLetter(btn.dataset.letter);
+            lastTouchedKey = btn;
           }
         }
       }
     }
-    document.addEventListener("touchstart", handleTouch);
-    document.addEventListener("touchmove", handleTouch);
-    document.addEventListener("touchend", ()=>{ lastTouchedBtn=null; });
 
-    // Magnetometro
-    let lastMag = null;
-    let sensitivity = 0.1;
-    if(window.DeviceOrientationEvent){
-      window.addEventListener("deviceorientation", e=>{
-        if(e.absolute && e.alpha!==null){
-          const mag = e.alpha;
-          const activeMag = lastMag!==null && Math.abs(mag-lastMag)>sensitivity;
-          lastMag = mag;
-          if(scanActive && activeMag){ writeLetter(letters[scanIndex]); }
+    // Aggiungi gli eventi
+    document.addEventListener("touchstart", handleTouchStart, { passive: false });
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd, { passive: false });
+    document.addEventListener("touchcancel", handleTouchEnd, { passive: false });
+
+    // Click fallback per desktop
+    document.querySelectorAll('button[data-letter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!scanActive || (scanActive && btn.classList.contains('active'))) {
+          writeLetter(btn.dataset.letter);
         }
       });
+    });
+
+    // Pulsante Box
+    boxBtn.addEventListener("click", () => {
+      if (box.value.trim() !== "") {
+        const now = new Date();
+        const timestamp = now.toLocaleString('it-IT');
+        const message = box.value;
+        
+        let saved = JSON.parse(localStorage.getItem('animaboard_messages') || '[]');
+        saved.push({ timestamp, message });
+        localStorage.setItem('animaboard_messages', JSON.stringify(saved));
+        
+        box.value = "";
+      }
+      
+      showSavedMessages();
+    });
+
+    function showSavedMessages() {
+      messagesList.innerHTML = '';
+      const saved = JSON.parse(localStorage.getItem('animaboard_messages') || '[]');
+      
+      if (saved.length === 0) {
+        messagesList.innerHTML = '<p style="color:#0f0;">Nessun messaggio salvato</p>';
+      } else {
+        saved.forEach((item, index) => {
+          const div = document.createElement('div');
+          div.className = 'message-item';
+          div.innerHTML = `<strong>${item.timestamp}</strong><br>${item.message.replace(/\n/g, '<br>')}`;
+          messagesList.appendChild(div);
+        });
+      }
+      
+      savedMessages.style.display = 'block';
     }
 
-    // Wake Lock
-    let wakeLock=null, wakeActive=false;
-    async function toggleWakeLock(){
-      if('wakeLock' in navigator){
-        if(!wakeActive){
-          try{ 
-            wakeLock = await navigator.wakeLock.request('screen'); 
-            wakeActive = true; 
-            wakeBtn.textContent = "Schermo: ON"; 
-          } catch(err){ 
-            console.error("Errore Wake Lock:", err); 
+    saveBtn.addEventListener("click", () => {
+      const saved = JSON.parse(localStorage.getItem('animaboard_messages') || '[]');
+      if (saved.length === 0) {
+        alert("Nessun messaggio da salvare!");
+        return;
+      }
+      
+      let content = "";
+      saved.forEach(item => {
+        content += `[${item.timestamp}]\n${item.message}\n\n---\n\n`;
+      });
+      
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'animaboard_messaggi_' + new Date().toISOString().slice(0,10) + '.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      if (confirm("Sei sicuro di voler cancellare TUTTI i messaggi salvati?")) {
+        localStorage.removeItem('animaboard_messages');
+        showSavedMessages();
+        alert("Tutti i messaggi sono stati cancellati.");
+      }
+    });
+
+    document.querySelector('.close-btn').addEventListener('click', () => {
+      savedMessages.style.display = 'none';
+    });
+
+    // ==================================================
+    // SCHERMO SEMPRE ACCESO - FUNZIONA SU TUTTI I DISPOSITIVI
+    // ==================================================
+    let wakeLock = null;
+    let wakeActive = false;
+    let wakeVideo = null;
+
+    async function toggleWakeLock() {
+      if (wakeActive) {
+        if (wakeLock) {
+          try { await wakeLock.release(); } catch (e) {}
+          wakeLock = null;
+        }
+        if (wakeVideo) {
+          wakeVideo.pause();
+          wakeVideo.src = '';
+          wakeVideo.remove();
+          wakeVideo = null;
+        }
+        wakeActive = false;
+        wakeBtn.textContent = "Schermo: OFF";
+        console.log("📴 Schermo sbloccato");
+      } else {
+        if ('wakeLock' in navigator) {
+          try {
+            wakeLock = await navigator.wakeLock.request('screen');
+            wakeActive = true;
+            wakeBtn.textContent = "Schermo: ON (WakeLock)";
+            console.log("✅ Wake Lock attivato");
+            return;
+          } catch (err) {
+            console.warn("Wake Lock non disponibile, passo al fallback video:", err);
           }
-        } else { 
-          if(wakeLock) wakeLock.release(); 
-          wakeActive = false; 
-          wakeBtn.textContent = "Schermo: OFF"; 
+        }
+
+        try {
+          wakeVideo = document.createElement('video');
+          wakeVideo.style.position = 'fixed';
+          wakeVideo.style.top = '0';
+          wakeVideo.style.left = '0';
+          wakeVideo.style.width = '1px';
+          wakeVideo.style.height = '1px';
+          wakeVideo.style.opacity = '0.01';
+          wakeVideo.style.pointerEvents = 'none';
+          wakeVideo.style.zIndex = '-9999';
+          wakeVideo.muted = true;
+          wakeVideo.loop = true;
+          wakeVideo.playsInline = true;
+          wakeVideo.disableRemotePlayback = true;
+
+          const canvas = document.createElement('canvas');
+          canvas.width = 1;
+          canvas.height = 1;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, 1, 1);
+          const stream = canvas.captureStream(1);
+
+          wakeVideo.srcObject = stream;
+          document.body.appendChild(wakeVideo);
+
+          await wakeVideo.play();
+          wakeActive = true;
+          wakeBtn.textContent = "Schermo: ON (Video)";
+          console.log("✅ Fallback video attivato");
+
+        } catch (err) {
+          console.error("❌ Impossibile attivare nemmeno il fallback video:", err);
+          wakeBtn.textContent = "Schermo: ERRORE";
+          alert("Impossibile bloccare lo schermo. Prova su un altro browser o dispositivo.");
         }
       }
     }
-    wakeBtn.addEventListener("click", toggleWakeLock);
+
+    wakeBtn.addEventListener("click", (e) => {
+      toggleWakeLock();
+    });
 
     // Scansione tasti
     scanBtn.addEventListener("click", ()=>{
       scanActive = !scanActive;
-      scanBtn.textContent = scanActive ? "Disattiva scansione" : "Attiva scansione tasti";
+      scanBtn.textContent = scanActive ? "⏹ Ferma Scansione" : "▶️ Avvia Scansione";
       if(scanActive){
+        scanIndex = 0;
         updateScanHighlight();
         startScan();
       } else {
@@ -241,10 +614,8 @@
         keyButtons.forEach(btn => btn.classList.remove('active'));
       }
     });
-  </script>
 
-  <!-- ✅ REGISTRAZIONE SERVICE WORKER (FONDAMENTALE PER LA PWA) -->
-  <script>
+    // Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
@@ -260,4 +631,3 @@
 
 </body>
 </html>
-
