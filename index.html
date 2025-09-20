@@ -202,7 +202,7 @@
     #saveBtn { background: #00CED1; color: #000; }
     #clearBtn { background: #f00; color: white; }
 
-    
+    /* Fallback video */
     video[style*="opacity: 0.01"] {
       display: block !important;
       visibility: visible !important;
@@ -288,6 +288,7 @@
     let filteredIndex = 0;
     let lastFullMessage = ""; 
     let hasSavedOnFirstDelete = false; 
+    let lastSavedMessage = ""; 
 
     
     function speak(text, rate = 1.0, pitch = 1.0) {
@@ -380,7 +381,7 @@
       }
     });
 
-   
+    
     function writeLetter(l){
       if(l==="Spazio") {
         box.value += " ";
@@ -392,12 +393,13 @@
         if (box.value.length > 0) {
           
           if (!hasSavedOnFirstDelete) {
-            if (lastFullMessage.trim() !== "") {
+            if (lastFullMessage.trim() !== "" && lastFullMessage !== lastSavedMessage) {
               const saved = JSON.parse(localStorage.getItem('animaboard_messages') || '[]');
               const now = new Date();
               const timestamp = now.toLocaleString('it-IT');
-              saved.push({ timestamp, message: lastFullMessage }); // ✅ Salva il messaggio completo originale
+              saved.push({ timestamp, message: lastFullMessage });
               localStorage.setItem('animaboard_messages', JSON.stringify(saved));
+              lastSavedMessage = lastFullMessage; // ✅ Aggiorna ultimo salvato
             }
             hasSavedOnFirstDelete = true;
           }
@@ -410,8 +412,8 @@
       else {
         box.value += l;
         speak(l);
-        lastFullMessage = box.value; 
-        hasSavedOnFirstDelete = false; 
+        lastFullMessage = box.value; // ✅ Aggiorna messaggio completo
+        hasSavedOnFirstDelete = false; // ✅ Reset flag
       }
 
       setTimeout(() => {
@@ -419,7 +421,7 @@
       }, 0);
     }
 
-   
+    
     keyButtons.forEach(btn=>{
       if(btn.dataset.letter === "Cancella"){
         btn.addEventListener("mousedown", handleDeleteClick);
@@ -431,13 +433,14 @@
       e.preventDefault();
       
       const longPressTimer = setTimeout(() => {
-        // ✅ Salva lastFullMessage prima di svuotare
-        if (lastFullMessage.trim() !== "") {
+        
+        if (lastFullMessage.trim() !== "" && lastFullMessage !== lastSavedMessage) {
           const saved = JSON.parse(localStorage.getItem('animaboard_messages') || '[]');
           const now = new Date();
           const timestamp = now.toLocaleString('it-IT');
           saved.push({ timestamp, message: lastFullMessage });
           localStorage.setItem('animaboard_messages', JSON.stringify(saved));
+          lastSavedMessage = lastFullMessage; 
         }
         box.value = "";
         lastFullMessage = ""; 
@@ -611,14 +614,15 @@
       }
     });
 
-    // ✅ Pulsante Box — salva il testo corrente
+    
     boxBtn.addEventListener("click", () => {
-      if (box.value.trim() !== "") {
+      if (box.value.trim() !== "" && box.value !== lastSavedMessage) {
         const saved = JSON.parse(localStorage.getItem('animaboard_messages') || '[]');
         const now = new Date();
         const timestamp = now.toLocaleString('it-IT');
-        saved.push({ timestamp, message: box.value }); // ✅ Salva il testo corrente
+        saved.push({ timestamp, message: box.value });
         localStorage.setItem('animaboard_messages', JSON.stringify(saved));
+        lastSavedMessage = box.value; 
       }
       showSavedMessages();
     });
@@ -667,6 +671,7 @@
     clearBtn.addEventListener("click", () => {
       if (confirm("Sei sicuro di voler cancellare TUTTI i messaggi salvati?")) {
         localStorage.removeItem('animaboard_messages');
+        lastSavedMessage = ""; // ✅ Reset
         showSavedMessages();
         alert("Tutti i messaggi sono stati cancellati.");
       }
@@ -676,7 +681,7 @@
       savedMessages.style.display = 'none';
     });
 
-    
+   
     let wakeLock = null;
     let wakeActive = false;
     let wakeVideo = null;
