@@ -96,6 +96,14 @@
       color: #000; 
     }
     .keys button:disabled { color:#333; border-color:#333; cursor:default; }
+    /* ✅ Stile per il tasto "Leggi" nella tastiera */
+    #readBtn {
+      background: #FFA500; /* Arancione per distinguerlo */
+      color: #000;
+      border: 1px solid #FFA500;
+      font-size: 10px;
+      padding: 6px 2px;
+    }
     button { 
       margin:3px 2px;
       padding:4px 6px; 
@@ -194,7 +202,7 @@
     #saveBtn { background: #00CED1; color: #000; }
     #clearBtn { background: #f00; color: white; }
 
-    /* Fallback video */
+    
     video[style*="opacity: 0.01"] {
       display: block !important;
       visibility: visible !important;
@@ -211,7 +219,6 @@
     <button id="boxBtn">📁 Box</button>
   </div>
 
-  <!-- ✅ readonly + onfocus per bloccare la tastiera nativa -->
   <textarea 
     id="box" 
     placeholder="In Attesa Di Un Messaggio...."
@@ -276,11 +283,51 @@
     let scanSpeed = parseInt(scanSpeedSlider.value);
     let scanActive = false;
     let scanTimer = null;
-    let scanMode = 'all'; // 'all', 'letters', 'numbers'
+    let scanMode = 'all';
     let currentActiveButton = null;
     let filteredIndex = 0;
+    let lastFullMessage = ""; 
+    let hasSavedOnFirstDelete = false; 
 
-    // Modalità di scansione
+    
+    function speak(text, rate = 1.0, pitch = 1.0) {
+      if (!('speechSynthesis' in window)) {
+        console.warn("SpeechSynthesis non supportato in questo browser.");
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'it-IT';
+      utterance.rate = rate;
+      utterance.pitch = pitch;
+      utterance.volume = 1.0;
+
+      let voices = window.speechSynthesis.getVoices();
+      let italianVoices = voices.filter(v => v.lang.startsWith('it'));
+      let maleVoice = italianVoices.find(v => /male|uomo|man/i.test(v.name)) || italianVoices[0] || voices.find(v => /male/i.test(v.name)) || null;
+
+      if (maleVoice) {
+        utterance.voice = maleVoice;
+      }
+
+      window.speechSynthesis.speak(utterance);
+
+      if (voices.length === 0) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          voices = window.speechSynthesis.getVoices();
+          italianVoices = voices.filter(v => v.lang.startsWith('it'));
+          maleVoice = italianVoices.find(v => /male|uomo|man/i.test(v.name)) || italianVoices[0] || voices.find(v => /male/i.test(v.name)) || null;
+          if (maleVoice) {
+            utterance.voice = maleVoice;
+          }
+          window.speechSynthesis.speak(utterance);
+        };
+      }
+    }
+
+    
     function setScanMode(mode) {
       scanMode = mode;
       [scanModeAll, scanModeLetters, scanModeNumbers].forEach(btn => btn.classList.remove('active'));
@@ -304,7 +351,7 @@
       if(scanActive){ startScan(); }
     });
 
-    // Genera tastiera completa (lettere + numeri)
+    
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
     const numbers = "0123456789".split("");
     const special = ["Spazio", "Cancella"];
@@ -319,52 +366,96 @@
       keyButtons.push(btn);
     });
 
-    // Scrittura lettera
-    function writeLetter(l){
-      if(l==="Spazio") box.value += " ";
-      else if(l==="Cancella") box.value = box.value.slice(0,-1);
-      else box.value += l;
-      box.scrollTop = box.scrollHeight; // auto-scroll
-    }
+    
+    const readBtn = document.createElement("button");
+    readBtn.id = "readBtn";
+    readBtn.textContent = "🔊 Leggi";
+    keysContainer.appendChild(readBtn);
 
-    // Gestione press prolungato su Cancella → SALVA E SVUOTA
-    let deleteTimer = null;
-    keyButtons.forEach(btn=>{
-      if(btn.dataset.letter === "Cancella"){
-        btn.addEventListener("mousedown", startDeleteHold);
-        btn.addEventListener("touchstart", startDeleteHold);
-        btn.addEventListener("mouseup", stopDeleteHold);
-        btn.addEventListener("mouseleave", stopDeleteHold);
-        btn.addEventListener("touchend", stopDeleteHold);
-        btn.addEventListener("touchcancel", stopDeleteHold);
+    readBtn.addEventListener("click", () => {
+      if (box.value.trim() !== "") {
+        speak(box.value, 0.9, 1.1);
+      } else {
+        speak("Nessun testo da leggere.");
       }
     });
 
-    function startDeleteHold(e){
+   
+    function writeLetter(l){
+      if(l==="Spazio") {
+        box.value += " ";
+        speak("Spazio");
+        lastFullMessage = box.value; 
+        hasSavedOnFirstDelete = false; 
+      }
+      else if(l==="Cancella") {
+        if (box.value.length > 0) {
+          
+          if (!hasSavedOnFirstDelete) {
+            if (lastFullMessage.trim() !== "") {
+              const saved = JSON.parse(localStorage.getItem('animaboard_messages') || '[]');
+              const now = new Date();
+              const timestamp = now.toLocaleString('it-IT');
+              saved.push({ timestamp, message: lastFullMessage }); // ✅ Salva il messaggio completo originale
+              localStorage.setItem('animaboard_messages', JSON.stringify(saved));
+            }
+            hasSavedOnFirstDelete = true;
+          }
+          
+          let currentValue = box.value;
+          let newValue = currentValue.slice(0, -1);
+          box.value = newValue;
+        }
+      }
+      else {
+        box.value += l;
+        speak(l);
+        lastFullMessage = box.value; 
+        hasSavedOnFirstDelete = false; 
+      }
+
+      setTimeout(() => {
+        box.scrollTop = box.scrollHeight;
+      }, 0);
+    }
+
+   
+    keyButtons.forEach(btn=>{
+      if(btn.dataset.letter === "Cancella"){
+        btn.addEventListener("mousedown", handleDeleteClick);
+        btn.addEventListener("touchstart", handleDeleteClick);
+      }
+    });
+
+    function handleDeleteClick(e) {
       e.preventDefault();
-      deleteTimer = setTimeout(()=>{
-        // ✅ SE C'È UN MESSAGGIO, SALVALO NEL BOX
-        if (box.value.trim() !== "") {
+      
+      const longPressTimer = setTimeout(() => {
+        // ✅ Salva lastFullMessage prima di svuotare
+        if (lastFullMessage.trim() !== "") {
+          const saved = JSON.parse(localStorage.getItem('animaboard_messages') || '[]');
           const now = new Date();
           const timestamp = now.toLocaleString('it-IT');
-          const message = box.value;
-
-          // Salva in localStorage come fa il pulsante Box
-          let saved = JSON.parse(localStorage.getItem('animaboard_messages') || '[]');
-          saved.push({ timestamp, message });
+          saved.push({ timestamp, message: lastFullMessage });
           localStorage.setItem('animaboard_messages', JSON.stringify(saved));
         }
-        // ✅ SVUOTA IL RIQUADRO DI SCRITTURA
         box.value = "";
-        // Non serve focus, readonly lo blocca
+        lastFullMessage = ""; 
+        hasSavedOnFirstDelete = false; 
       }, 600);
+
+      const cancelLongPress = () => {
+        clearTimeout(longPressTimer);
+        
+      };
+
+      const events = ['mouseup', 'mouseleave', 'touchend', 'touchcancel'];
+      events.forEach(event => {
+        document.addEventListener(event, cancelLongPress, { once: true });
+      });
     }
 
-    function stopDeleteHold(){
-      clearTimeout(deleteTimer);
-    }
-
-    // ✅ CORREZIONE: Non saltare la lettera A — evidenzia PRIMA di avanzare
+    
     function updateScanHighlight(){
       keyButtons.forEach(btn => btn.classList.remove('active'));
       
@@ -375,19 +466,19 @@
         filteredButtons = keyButtons.filter(btn => numbers.includes(btn.dataset.letter));
       }
 
+      filteredButtons = filteredButtons.filter(btn => btn !== readBtn);
+
       if (filteredButtons.length === 0) {
         currentActiveButton = null;
         return;
       }
 
-      // ✅ PRIMA: evidenzia la lettera corrente
       const currentButton = filteredButtons[filteredIndex];
       if (currentButton && currentButton.dataset.letter !== "Cancella") {
         currentButton.classList.add('active');
         currentActiveButton = currentButton;
       }
 
-      // ✅ POI: cerca la prossima lettera valida per il prossimo ciclo
       let nextIndex = filteredIndex;
       let validButtonFound = false;
       do {
@@ -401,18 +492,18 @@
       } while (nextIndex !== filteredIndex);
     }
 
-    // ✅ Avvia scansione
+    
     function startScan(){
       if(scanTimer) clearInterval(scanTimer);
 
-      let filteredButtons = keyButtons;
+      let filteredButtons = keyButtons.filter(btn => btn !== readBtn);
+
       if (scanMode === 'letters') {
-        filteredButtons = keyButtons.filter(btn => letters.includes(btn.dataset.letter));
+        filteredButtons = filteredButtons.filter(btn => letters.includes(btn.dataset.letter));
       } else if (scanMode === 'numbers') {
-        filteredButtons = keyButtons.filter(btn => numbers.includes(btn.dataset.letter));
+        filteredButtons = filteredButtons.filter(btn => numbers.includes(btn.dataset.letter));
       }
 
-      // Trova il primo tasto valido a partire dall'inizio
       filteredIndex = 0;
       let found = false;
       for (let i = 0; i < filteredButtons.length; i++) {
@@ -423,20 +514,16 @@
         }
       }
 
-      // Se non trovi nessun tasto valido, usa il primo (dovrebbe essere raro)
       if (!found && filteredButtons.length > 0) {
         filteredIndex = 0;
       }
 
-      // ✅ Evidenzia subito il primo tasto valido
       updateScanHighlight();
-
-      // Avvia la scansione continua
       scanTimer = setInterval(updateScanHighlight, scanSpeed);
     }
 
     // ==================================================
-    // TOUCH + SCANSIONE — SCRIVE SEMPRE LA LETTERA EVIDENZIATA
+    // TOUCH + SCANSIONE
     // ==================================================
     let lastTouchedKey = null;
 
@@ -482,7 +569,7 @@
       for (let i = 0; i < e.touches.length; i++) {
         const touch = e.touches[i];
         const el = document.elementFromPoint(touch.clientX, touch.clientY);
-        const btn = el?.closest('button[data-letter]');
+        const btn = el?.closest('button[data-letter], #readBtn');
 
         if (!btn) continue;
 
@@ -492,43 +579,47 @@
           }
         } else {
           if (btn !== lastTouchedKey) {
-            writeLetter(btn.dataset.letter);
+            if (btn.id === "readBtn") {
+              if (box.value.trim() !== "") {
+                speak(box.value, 0.9, 1.1);
+              } else {
+                speak("Nessun testo da leggere.");
+              }
+            } else {
+              writeLetter(btn.dataset.letter);
+            }
             lastTouchedKey = btn;
           }
         }
       }
     }
 
-    // Eventi touch
     document.addEventListener("touchstart", handleTouchStart, { passive: false });
     document.addEventListener("touchmove", handleTouchMove, { passive: false });
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
     document.addEventListener("touchcancel", handleTouchEnd, { passive: false });
 
-    // Click desktop
     document.querySelectorAll('button[data-letter]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (!scanActive) {
-          writeLetter(btn.dataset.letter);
-        } else if (btn.classList.contains('active')) {
-          writeLetter(btn.dataset.letter);
-        }
-      });
+      if (btn.dataset.letter !== "Cancella") {
+        btn.addEventListener('click', () => {
+          if (!scanActive) {
+            writeLetter(btn.dataset.letter);
+          } else if (btn.classList.contains('active')) {
+            writeLetter(btn.dataset.letter);
+          }
+        });
+      }
     });
 
-    // Pulsante Box — SALVA E SVUOTA
+    // ✅ Pulsante Box — salva il testo corrente
     boxBtn.addEventListener("click", () => {
       if (box.value.trim() !== "") {
+        const saved = JSON.parse(localStorage.getItem('animaboard_messages') || '[]');
         const now = new Date();
         const timestamp = now.toLocaleString('it-IT');
-        const message = box.value;
-        
-        let saved = JSON.parse(localStorage.getItem('animaboard_messages') || '[]');
-        saved.push({ timestamp, message });
+        saved.push({ timestamp, message: box.value }); // ✅ Salva il testo corrente
         localStorage.setItem('animaboard_messages', JSON.stringify(saved));
       }
-      
-      box.value = "";
       showSavedMessages();
     });
 
@@ -585,7 +676,7 @@
       savedMessages.style.display = 'none';
     });
 
-    // Schermo sempre acceso
+    
     let wakeLock = null;
     let wakeActive = false;
     let wakeVideo = null;
@@ -646,8 +737,8 @@
 
           await wakeVideo.play();
           wakeActive = true;
-          wakeBtn.textContent = "Schermo: ON (Video)";
-          console.log("✅ Fallback video attivato");
+          wakeBtn.textContent = "Schermo: ON (WakeLock)";
+          console.log("✅ Fallback video attivato (visualizzato come WakeLock)");
 
         } catch (err) {
           console.error("❌ Impossibile attivare nemmeno il fallback video:", err);
@@ -661,7 +752,6 @@
       toggleWakeLock();
     });
 
-    // Scansione tasti
     scanBtn.addEventListener("click", ()=>{
       scanActive = !scanActive;
       scanBtn.textContent = scanActive ? "⏹ Ferma Scansione" : "▶️ Avvia Scansione";
@@ -671,10 +761,11 @@
         clearInterval(scanTimer);
         scanTimer = null;
         keyButtons.forEach(btn => btn.classList.remove('active'));
+        readBtn.classList.remove('active');
       }
     });
 
-    // Service Worker
+    
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
